@@ -1,0 +1,30 @@
+# ── Cross-compilation per Raspberry Pi 4 (aarch64) ──────────────────────────
+#
+# Prerequisiti su macOS:
+#   brew install arm-unknown-linux-gnueabihf
+#   cargo install cross
+#
+# Prerequisiti su Linux (Debian/Ubuntu):
+#   sudo apt install gcc-aarch64-linux-gnu
+#   cargo install cross
+#
+# Build per RPi:
+#   cross build --release --target aarch64-unknown-linux-gnu
+#   oppure: cargo build --release --target aarch64-unknown-linux-gnu
+
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
+
+# Ottimizzazioni specifiche per Cortex-A72 (RPi 4)
+# Attivate solo in release per non rallentare i build di dev
+[profile.release]
+opt-level     = 3
+lto           = "thin"
+codegen-units = 1
+strip         = true      # riduce dimensione binario (~30%)
+panic         = "abort"   # riduce ulteriormente la dimensione
+
+[profile.release-rpi]
+inherits  = "release"
+# Consente istruzioni NEON/Crypto specifiche del Cortex-A72
+# (usato automaticamente da cross con RUSTFLAGS corretti)

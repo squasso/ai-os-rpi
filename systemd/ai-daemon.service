@@ -1,0 +1,14 @@
+[Unit]
+Description=AI-OS Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/ai-daemon
+Restart=on-failure
+RestartSec=3
+Environment=RUST_LOG=info
+# config in ~/.config/ai-os/config.toml
+
+[Install]
+WantedBy=default.target

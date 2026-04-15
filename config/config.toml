@@ -1,0 +1,21 @@
+api_key = ""   # chiave Anthropic: https://console.anthropic.com
+
+[budget]
+monthly_limit_usd    = 10.0
+daily_soft_limit_usd = 0.50
+alert_at_percent     = 80
+
+[update]
+update_url = ""     # URL base degli aggiornamenti, es. https://tuo-server.com/ai-os/
+auto_check = true   # controlla aggiornamenti ogni domenica alle 03:00
+
+# Decommenta e compila per usare WordPress
+# [wordpress]
+# url          = ""   # es. https://tuoblog.com
+# username     = ""   # username WordPress
+# app_password = ""   # Impostazioni → Utenti → Password applicazione
+
+# Decommenta e compila per usare Ghost
+# [ghost]
+# url       = ""   # es. https://tuoblog.ghost.io
+# admin_key = ""   # Admin API Key dal pannello Ghost (formato id:hex_secret)

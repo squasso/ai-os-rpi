@@ -1,0 +1,153 @@
+name: Release AI-OS
+
+# Trigger su tag vX.Y.Z oppure manuale
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versione (es. 0.2.0)'
+        required: true
+
+jobs:
+  build:
+    name: Cross-compile per aarch64 (RPi 4)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Ricava la versione ───────────────────────────────────────────────────
+      - name: Ricava versione
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Rust toolchain ───────────────────────────────────────────────────────
+      - name: Installa Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: aarch64-release
+
+      # ── Cross ────────────────────────────────────────────────────────────────
+      - name: Installa cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      # ── Dipendenze di sistema per cross-compilation ──────────────────────────
+      - name: Dipendenze sistema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      # ── Compilazione ────────────────────────────────────────────────────────
+      - name: Build release (aarch64)
+        env:
+          CROSS_CONTAINER_OPTS: "--platform linux/amd64"
+        run: |
+          cross build --release --target aarch64-unknown-linux-gnu \
+            --bin ai-daemon \
+            --bin ai-shell
+
+      # ── Prepara overlay ──────────────────────────────────────────────────────
+      - name: Crea overlay
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          BINS="target/aarch64-unknown-linux-gnu/release"
+          OVERLAY="dist/overlay"
+
+          mkdir -p "$OVERLAY/usr/local/bin"
+          mkdir -p "$OVERLAY/usr/local/share/ai-os"
+          mkdir -p "$OVERLAY/etc/xdg/ai-os"
+          mkdir -p "$OVERLAY/etc/systemd/user"
+          mkdir -p "$OVERLAY/etc/wayfire"
+
+          cp "$BINS/ai-daemon"   "$OVERLAY/usr/local/bin/"
+          cp "$BINS/ai-shell"    "$OVERLAY/usr/local/bin/"
+          cp scripts/ai-os-update.sh "$OVERLAY/usr/local/bin/ai-os-update"
+          chmod +x "$OVERLAY/usr/local/bin/ai-os-update"
+
+          echo "$VERSION" > "$OVERLAY/usr/local/share/ai-os/VERSION"
+
+          cp systemd/ai-daemon.service      "$OVERLAY/etc/systemd/user/"
+          cp systemd/ai-os-update.service   "$OVERLAY/etc/systemd/user/"
+          cp systemd/ai-os-update.timer     "$OVERLAY/etc/systemd/user/"
+          cp config/config.toml             "$OVERLAY/etc/xdg/ai-os/"
+          cp base-image/packages.list       "$OVERLAY/etc/xdg/ai-os/"
+          cp base-image/wayfire.ini         "$OVERLAY/etc/wayfire/" 2>/dev/null || true
+
+          # Tarball
+          mkdir -p dist
+          (cd dist && tar -czf ai-os-overlay.tar.gz overlay/)
+          sha256sum dist/ai-os-overlay.tar.gz | awk '{print $1}' > dist/ai-os-overlay.tar.gz.sha256
+          echo "$VERSION" > dist/version.txt
+
+          echo "=== Contenuto overlay ==="
+          ls -lh dist/
+
+      # ── Crea GitHub Release ──────────────────────────────────────────────────
+      - name: Crea Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "AI-OS v${{ steps.version.outputs.VERSION }}"
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/ai-os-overlay.tar.gz
+            dist/ai-os-overlay.tar.gz.sha256
+            dist/version.txt
+          body: |
+            ## AI-OS v${{ steps.version.outputs.VERSION }}
+
+            ### Aggiornamento OTA (sistemi già installati)
+
+            Configura `update_url` in `~/.config/ai-os/config.toml`:
+            ```toml
+            [update]
+            update_url = "https://github.com/${{ github.repository }}/releases/latest/download/"
+            auto_check = true
+            ```
+            Poi esegui `ai-os-update --apply` oppure chiedi all'assistente "aggiorna il sistema".
+
+            ### Installazione su nuovo dispositivo
+            Scarica `ai-os-overlay.tar.gz` e segui le istruzioni nel README.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Build dell'immagine SD completa (opzionale, solo su tag) ───────────────
+  build-image:
+    name: Build immagine SD (opzionale)
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scarica overlay dalla release
+        uses: actions/download-artifact@v4
+        with:
+          name: overlay
+          path: dist/
+        continue-on-error: true  # se non esiste come artifact, skip
+
+      - name: Nota
+        run: |
+          echo "La build dell'immagine SD completa richiede sudo e losetup."
+          echo "Per ora è supportata solo in locale con ./base-image/build-image.sh"
+          echo "In futuro: usare act-runner self-hosted su Linux."

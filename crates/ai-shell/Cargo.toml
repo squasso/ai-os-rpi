@@ -1,0 +1,24 @@
+[package]
+name    = "ai-shell"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "ai-shell"
+path = "src/main.rs"
+
+[features]
+# Attivate automaticamente su Linux via build.rs
+linux-display = ["eframe/wayland", "eframe/x11"]
+
+[dependencies]
+common             = { path = "../common" }
+egui               = { workspace = true }
+eframe             = { workspace = true }
+tokio              = { workspace = true }
+serde              = { workspace = true }
+toml               = { workspace = true }
+anyhow             = { workspace = true }
+serde_json         = { workspace = true }
+chrono             = { workspace = true }
+dirs-next          = "2"

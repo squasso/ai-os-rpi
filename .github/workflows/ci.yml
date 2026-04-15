@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Check & Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      # Dipendenze per egui/eframe su Linux headless
+      - name: Dipendenze sistema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            libwayland-dev libxkbcommon-dev libssl-dev pkg-config
+
+      - name: cargo check
+        run: cargo check --all
+
+      - name: cargo clippy
+        run: cargo clippy --all -- -D warnings
+        continue-on-error: true   # warning → non blocca, errori sì

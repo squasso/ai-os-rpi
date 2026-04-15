@@ -1,0 +1,15 @@
+[Unit]
+Description=AI-OS — Controllo aggiornamenti periodico
+Requires=ai-os-update.service
+
+[Timer]
+# Controlla ogni domenica alle 03:00 (sistema a riposo)
+OnCalendar=Sun *-*-* 03:00:00
+# Primo controllo 10 minuti dopo il boot (rete disponibile)
+OnBootSec=10min
+# Distribuzione casuale ±30min per non sovraccaricare il server
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target

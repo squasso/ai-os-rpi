@@ -1,0 +1,12 @@
+[Unit]
+Description=AI-OS — Controllo e installazione aggiornamenti
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ai-os-update
+# L'output JSON viene catturato dal logger di sistema
+StandardOutput=journal
+StandardError=journal
+Environment=RUST_LOG=info

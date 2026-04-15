@@ -1,0 +1,32 @@
+# Browser
+chromium-browser
+
+# Office
+libreoffice
+
+# Grafica
+gimp
+inkscape
+
+# Multimedia
+vlc
+
+# File manager
+thunar
+
+# Terminale
+foot
+
+# Wayland compositor e tool
+wayfire
+swaybg
+wl-clipboard
+
+# Font
+fonts-inter
+fonts-jetbrains-mono
+
+# Utility
+curl
+git
+rsync

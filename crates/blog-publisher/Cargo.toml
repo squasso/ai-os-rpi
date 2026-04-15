@@ -1,0 +1,20 @@
+[package]
+name    = "blog-publisher"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "blog_publisher"
+path = "src/lib.rs"
+
+[dependencies]
+common    = { path = "../common" }
+tokio     = { workspace = true }
+serde     = { workspace = true }
+serde_json= { workspace = true }
+reqwest   = { workspace = true }
+anyhow    = { workspace = true }
+base64          = "0.22"
+pulldown-cmark  = "0.11"
+jsonwebtoken    = "9"
+hex             = "0.4"
