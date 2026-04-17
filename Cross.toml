@@ -2,19 +2,5 @@
 pre-build = [
     "dpkg --add-architecture arm64",
     "apt-get update -qq",
-    "apt-get install -y --no-install-recommends \
-        libwayland-dev:arm64 \
-        libwayland-client0:arm64 \
-        libxkbcommon-dev:arm64 \
-        libx11-dev:arm64 \
-        libxi-dev:arm64 \
-        libxrandr-dev:arm64 \
-        libxcursor-dev:arm64 \
-        libxinerama-dev:arm64 \
-        libgl1-mesa-dev:arm64 \
-        libegl1-mesa-dev:arm64 \
-        libgles2-mesa-dev:arm64 \
-        libfontconfig1-dev:arm64 \
-        libdbus-1-dev:arm64 \
-        pkg-config",
+    "apt-get install -y --no-install-recommends libwayland-dev:arm64 libwayland-client0:arm64 libxkbcommon-dev:arm64 libx11-dev:arm64 libxi-dev:arm64 libxrandr-dev:arm64 libxcursor-dev:arm64 libxinerama-dev:arm64 libgl1-mesa-dev:arm64 libegl1-mesa-dev:arm64 libgles2-mesa-dev:arm64 libfontconfig1-dev:arm64 libdbus-1-dev:arm64 pkg-config",
 ]
