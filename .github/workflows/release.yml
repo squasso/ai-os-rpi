@@ -11,6 +11,9 @@ on:
         description: 'Versione (es. 0.2.0)'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Cross-compile per aarch64 (RPi 4)
