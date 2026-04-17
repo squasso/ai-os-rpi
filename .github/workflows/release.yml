@@ -56,8 +56,6 @@ jobs:
 
       # ── Compilazione ────────────────────────────────────────────────────────
       - name: Build release (aarch64)
-        env:
-          CROSS_CONTAINER_OPTS: "--platform linux/amd64"
         run: |
           cross build --release --target aarch64-unknown-linux-gnu \
             --bin ai-daemon \
